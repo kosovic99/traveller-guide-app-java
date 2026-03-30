@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: traveller-guide-api
+  profiles:
+    active: h2
