@@ -1,5 +1,13 @@
 spring:
   application:
     name: traveller-guide-api
-  profiles:
-    active: h2
+
+server:
+  forward-headers-strategy: framework
+
+traveller-guide:
+  security:
+    api-key:
+      header-name: X-API-Key
+      value: ${TRAVELLER_GUIDE_API_KEY}
+      enforce-https: true

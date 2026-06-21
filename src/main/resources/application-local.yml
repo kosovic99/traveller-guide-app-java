@@ -15,3 +15,9 @@ spring:
 
   flyway:
     enabled: false
+
+traveller-guide:
+  security:
+    api-key:
+      value: ${TRAVELLER_GUIDE_API_KEY:local-dev-api-key}
+      enforce-https: false
