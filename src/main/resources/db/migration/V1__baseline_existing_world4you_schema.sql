@@ -1,0 +1,3 @@
+-- Baseline marker only.
+-- The World4You schema already exists.
+-- Do not create, modify, or delete objects in this migration.
