@@ -31,8 +31,8 @@ public class CityService {
         return cityMapper.toResponse(city, attractionCount);
     }
 
-    @Cacheable(cacheNames = "countryCities", key = "#citySlug")
-    public List<CityResponse> getCountryCities(String citySlug) {
+    @Cacheable(cacheNames = "countryCities", key = "#citySlug + '::' + #sort")
+    public List<CityResponse> getCountryCities(String citySlug, CitySort sort) {
         City city = findCityBySlugOrThrow(citySlug);
 
         List<City> relatedCities = cityRepository.findByCountry_IdOrderByNameAsc(
@@ -40,6 +40,7 @@ public class CityService {
         );
 
         return relatedCities.stream()
+                .sorted(sort == null ? CitySort.NAME_ASC.comparator() : sort.comparator())
                 .map(relatedCity -> cityMapper.toResponse(
                         relatedCity,
                         attractionRepository.countByCity_Id(relatedCity.getId())

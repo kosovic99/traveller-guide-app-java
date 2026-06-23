@@ -1,6 +1,7 @@
 package com.travellerguide.traveller_guide_api.application.country;
 
 import com.travellerguide.traveller_guide_api.infrastructure.persistence.attraction.AttractionRepository;
+import com.travellerguide.traveller_guide_api.application.city.CitySort;
 import com.travellerguide.traveller_guide_api.infrastructure.persistence.city.CityRepository;
 import com.travellerguide.traveller_guide_api.infrastructure.persistence.country.CountryRepository;
 import com.travellerguide.traveller_guide_api.interfaces.rest.city.CityResponse;
@@ -46,13 +47,14 @@ public class CountryService {
         return countryMapper.toResponse(country);
     }
 
-    @Cacheable(cacheNames = "citiesByCountrySlug", key = "#countrySlug")
-    public List<CityResponse> getCitiesByCountrySlug(String countrySlug) {
+    @Cacheable(cacheNames = "citiesByCountrySlug", key = "#countrySlug + '::' + #sort")
+    public List<CityResponse> getCitiesByCountrySlug(String countrySlug, CitySort sort) {
         Country country = findCountryBySlugOrThrow(countrySlug);
 
         List<City> cities = cityRepository.findByCountry_IdOrderByNameAsc(country.getId());
 
         return cities.stream()
+                .sorted(sort == null ? CitySort.RECOMMENDED.comparator() : sort.comparator())
                 .map(city -> cityMapper.toResponse(
                         city,
                         attractionRepository.countByCity_Id(city.getId())

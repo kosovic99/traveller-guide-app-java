@@ -1,7 +1,6 @@
 package com.travellerguide.traveller_guide_api.interfaces.rest.prerender;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.travellerguide.traveller_guide_api.domain.attraction.Attraction;
 import com.travellerguide.traveller_guide_api.domain.category.Category;
 import com.travellerguide.traveller_guide_api.domain.city.City;
@@ -12,7 +11,6 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PrerenderRoutesResponse(
-        @JsonProperty("generated_at")
         LocalDateTime generatedAt,
         Totals totals,
         List<CountryRoute> countries,
@@ -71,7 +69,6 @@ public record PrerenderRoutesResponse(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CountryRoute(
-            @JsonProperty("countrySlug")
             String countrySlug
     ) {
         public static CountryRoute fromEntity(Country country) {
@@ -81,7 +78,6 @@ public record PrerenderRoutesResponse(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CityRoute(
-            @JsonProperty("citySlug")
             String citySlug
     ) {
         public static CityRoute fromEntity(City city) {
@@ -91,9 +87,7 @@ public record PrerenderRoutesResponse(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record AttractionRoute(
-            @JsonProperty("citySlug")
             String citySlug,
-            @JsonProperty("attractionSlug")
             String attractionSlug
     ) {
         public static AttractionRoute fromEntity(Attraction attraction) {
@@ -106,7 +100,6 @@ public record PrerenderRoutesResponse(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CategoryRoute(
-            @JsonProperty("categorySlug")
             String categorySlug
     ) {
         public static CategoryRoute fromEntity(Category category) {

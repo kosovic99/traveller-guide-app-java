@@ -3,45 +3,55 @@ package com.travellerguide.traveller_guide_api.interfaces.rest.search;
 import com.travellerguide.traveller_guide_api.domain.attraction.Attraction;
 import com.travellerguide.traveller_guide_api.domain.city.City;
 import com.travellerguide.traveller_guide_api.domain.country.Country;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring")
-public interface SearchItemMapper {
+@Component
+public class SearchItemMapper {
 
-    @Mapping(target = "type", constant = "country")
-    @Mapping(target = "title", source = "name")
-    @Mapping(target = "countryId", source = "id")
-    @Mapping(target = "countryName", source = "name")
-    @Mapping(target = "countrySlug", source = "slug")
-    @Mapping(target = "cityId", ignore = true)
-    @Mapping(target = "cityName", ignore = true)
-    @Mapping(target = "citySlug", ignore = true)
-    @Mapping(target = "attractionId", ignore = true)
-    @Mapping(target = "attractionSlug", ignore = true)
-    SearchItemResponse fromCountry(Country country);
+    public SearchItemResponse fromCountry(Country country) {
+        return new SearchItemResponse(
+                "country",
+                country.getName(),
+                null,
+                0,
+                country.getName(),
+                country.getSlug(),
+                null,
+                null,
+                null
+        );
+    }
 
-    @Mapping(target = "type", constant = "city")
-    @Mapping(target = "title", source = "name")
-    @Mapping(target = "countryId", source = "country.id")
-    @Mapping(target = "countryName", source = "country.name")
-    @Mapping(target = "countrySlug", source = "country.slug")
-    @Mapping(target = "cityId", source = "id")
-    @Mapping(target = "cityName", source = "name")
-    @Mapping(target = "citySlug", source = "slug")
-    @Mapping(target = "attractionId", ignore = true)
-    @Mapping(target = "attractionSlug", ignore = true)
-    SearchItemResponse fromCity(City city);
+    public SearchItemResponse fromCity(City city) {
+        Country country = city.getCountry();
 
-    @Mapping(target = "type", constant = "attraction")
-    @Mapping(target = "title", source = "name")
-    @Mapping(target = "countryId", source = "city.country.id")
-    @Mapping(target = "countryName", source = "city.country.name")
-    @Mapping(target = "countrySlug", source = "city.country.slug")
-    @Mapping(target = "cityId", source = "city.id")
-    @Mapping(target = "cityName", source = "city.name")
-    @Mapping(target = "citySlug", source = "city.slug")
-    @Mapping(target = "attractionId", source = "id")
-    @Mapping(target = "attractionSlug", source = "slug")
-    SearchItemResponse fromAttraction(Attraction attraction);
+        return new SearchItemResponse(
+                "city",
+                city.getName(),
+                country != null ? country.getName() : null,
+                0,
+                country != null ? country.getName() : null,
+                country != null ? country.getSlug() : null,
+                city.getName(),
+                city.getSlug(),
+                null
+        );
+    }
+
+    public SearchItemResponse fromAttraction(Attraction attraction) {
+        City city = attraction.getCity();
+        Country country = city != null ? city.getCountry() : null;
+
+        return new SearchItemResponse(
+                "attraction",
+                attraction.getName(),
+                city != null ? city.getName() : null,
+                0,
+                country != null ? country.getName() : null,
+                country != null ? country.getSlug() : null,
+                city != null ? city.getName() : null,
+                city != null ? city.getSlug() : null,
+                attraction.getSlug()
+        );
+    }
 }

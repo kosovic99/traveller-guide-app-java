@@ -1,5 +1,6 @@
 package com.travellerguide.traveller_guide_api.interfaces.rest.country;
 
+import com.travellerguide.traveller_guide_api.application.city.CitySort;
 import com.travellerguide.traveller_guide_api.application.country.CountryService;
 import com.travellerguide.traveller_guide_api.interfaces.rest.city.CityResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,10 @@ public class CountryController {
     }
 
     @GetMapping("/{countrySlug}/cities")
-    public List<CityResponse> cities(@PathVariable String countrySlug) {
-        return countryService.getCitiesByCountrySlug(countrySlug);
+    public List<CityResponse> cities(
+            @PathVariable String countrySlug,
+            @RequestParam(defaultValue = "recommended") String sort
+    ) {
+        return countryService.getCitiesByCountrySlug(countrySlug, CitySort.from(sort));
     }
 }

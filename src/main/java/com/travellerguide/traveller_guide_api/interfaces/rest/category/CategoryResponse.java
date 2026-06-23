@@ -1,7 +1,6 @@
 package com.travellerguide.traveller_guide_api.interfaces.rest.category;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.travellerguide.traveller_guide_api.domain.category.Category;
 import com.travellerguide.traveller_guide_api.domain.city.City;
 
@@ -57,11 +56,8 @@ public record CategoryResponse(
     public record Meta(
             String entity,
             Integer top,
-            @JsonProperty("categories_count")
             Integer categoriesCount,
-            @JsonProperty("cities_count")
             Integer citiesCount,
-            @JsonProperty("links_count")
             Long linksCount
     ) {
     }
@@ -71,7 +67,6 @@ public record CategoryResponse(
             Long id,
             String slug,
             String name,
-            @JsonProperty("sort_order")
             Integer sortOrder
     ) {
         public static CategoryItem fromEntity(Category category) {
@@ -91,11 +86,8 @@ public record CategoryResponse(
             String slug,
             String foto,
             String rating,
-            @JsonProperty("country_id")
             Long countryId,
-            @JsonProperty("country_name")
             String countryName,
-            @JsonProperty("country_slug")
             String countrySlug
     ) {
         public static CityItem fromEntity(City city) {
@@ -115,7 +107,6 @@ public record CategoryResponse(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CategoryMeta(
             Integer total,
-            @JsonProperty("topIds")
             List<Long> topIds
     ) {
     }
