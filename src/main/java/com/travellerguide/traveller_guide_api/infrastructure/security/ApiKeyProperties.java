@@ -10,7 +10,8 @@ public record ApiKeyProperties(
         @NotBlank
         String value,
         String headerName,
-        boolean enforceHttps
+        boolean enforceHttps,
+        boolean testDevMode
 ) {
 
     public String headerName() {

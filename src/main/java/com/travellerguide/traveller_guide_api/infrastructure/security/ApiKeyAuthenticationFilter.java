@@ -59,6 +59,10 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         return SecurityContextHolder.getContext().getAuthentication() != null
                 || path.equals("/actuator/health")
                 || path.equals("/actuator/info")
+                || path.equals("/v3/api-docs")
+                || path.startsWith("/v3/api-docs/")
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/swagger-ui/")
                 || path.equals("/h2-console")
                 || path.startsWith("/h2-console/");
     }

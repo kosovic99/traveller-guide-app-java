@@ -1,10 +1,18 @@
 package com.travellerguide.traveller_guide_api.application.category;
 
+import com.travellerguide.traveller_guide_api.application.i18n.SupportedLocale;
+import com.travellerguide.traveller_guide_api.application.i18n.TranslationFallbacks;
+import com.travellerguide.traveller_guide_api.application.i18n.TranslationView;
 import com.travellerguide.traveller_guide_api.domain.category.Category;
+import com.travellerguide.traveller_guide_api.domain.category.CategoryTranslation;
 import com.travellerguide.traveller_guide_api.domain.city.City;
+import com.travellerguide.traveller_guide_api.domain.city.CityTranslation;
 import com.travellerguide.traveller_guide_api.domain.category.CityCategory;
 import com.travellerguide.traveller_guide_api.infrastructure.persistence.category.CategoryRepository;
+import com.travellerguide.traveller_guide_api.infrastructure.persistence.category.CategoryTranslationRepository;
 import com.travellerguide.traveller_guide_api.infrastructure.persistence.category.CityCategoryRepository;
+import com.travellerguide.traveller_guide_api.infrastructure.persistence.city.CityTranslationRepository;
+import com.travellerguide.traveller_guide_api.infrastructure.persistence.country.CountryTranslationRepository;
 import com.travellerguide.traveller_guide_api.interfaces.rest.category.CategoryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,9 +33,18 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CityCategoryRepository cityCategoryRepository;
+    private final CategoryTranslationRepository categoryTranslationRepository;
+    private final CityTranslationRepository cityTranslationRepository;
+    private final CountryTranslationRepository countryTranslationRepository;
 
     @Cacheable(cacheNames = "categoriesBootstrap", key = "#entity + '::' + #top")
     public CategoryResponse getCategorySeed(String entity, Integer top) {
+        return getCategorySeed(SupportedLocale.DEFAULT, entity, top);
+    }
+
+    @Cacheable(cacheNames = "categoriesBootstrap", key = "#locale + '::' + #entity + '::' + #top")
+    public CategoryResponse getCategorySeed(String locale, String entity, Integer top) {
+        String resolvedLocale = SupportedLocale.normalize(locale);
         String resolvedEntity = "city";
         int resolvedTop = normalizeTop(top);
 
@@ -99,20 +116,109 @@ public class CategoryService {
             );
         }
 
-        return CategoryResponse.fromCitySeed(
+        return toLocalizedCategoryResponse(
                 resolvedEntity,
                 resolvedTop,
                 categories,
                 new ArrayList<>(citiesById.values()),
                 categoryCityIds,
                 categoryMeta,
-                (long) rows.size()
+                rows.size(),
+                resolvedLocale
         );
     }
 
     private int normalizeTop(Integer top) {
         int value = top == null ? 24 : top;
         return Math.max(1, Math.min(value, 60));
+    }
+
+    private CategoryResponse toLocalizedCategoryResponse(
+            String entity,
+            int top,
+            List<Category> categories,
+            List<City> cities,
+            Map<String, List<Long>> categoryCityIds,
+            Map<String, CategoryResponse.CategoryMeta> categoryMeta,
+            long linksCount,
+            String locale
+    ) {
+        List<CategoryResponse.CategoryItem> categoryItems = categories.stream()
+                .map(category -> toCategoryItem(category, locale))
+                .toList();
+
+        Map<Long, CategoryResponse.CityItem> citiesById = new LinkedHashMap<>();
+        for (City city : cities) {
+            citiesById.put(city.getId(), toCityItem(city, locale));
+        }
+
+        CategoryResponse.Meta meta = new CategoryResponse.Meta(
+                entity,
+                top,
+                categoryItems.size(),
+                citiesById.size(),
+                linksCount
+        );
+
+        return new CategoryResponse(meta, categoryItems, citiesById, categoryCityIds, categoryMeta);
+    }
+
+    private CategoryResponse.CategoryItem toCategoryItem(Category category, String locale) {
+        CategoryTranslation translation = categoryTranslationRepository
+                .findByCategory_IdAndLocale(category.getId(), locale)
+                .orElse(null);
+
+        String name = translation != null ? translation.getName() : category.getName();
+        String slug = translation != null ? translation.getSlug() : category.getSlug();
+
+        return new CategoryResponse.CategoryItem(category.getId(), slug, name, category.getSortOrder());
+    }
+
+    private CategoryResponse.CityItem toCityItem(City city, String locale) {
+        CityTranslation translation = cityTranslationRepository.findByCity_IdAndLocale(city.getId(), locale)
+                .orElse(null);
+        TranslationView cityView = TranslationFallbacks.of(
+                locale,
+                translation != null ? translation.getName() : null,
+                translation != null ? translation.getSlug() : null,
+                translation != null ? translation.getDescription() : null,
+                city.getName(),
+                city.getSlug(),
+                city.getDescription()
+        );
+
+        TranslationView countryView = city.getCountry() == null
+                ? null
+                : countryTranslationRepository.findByCountry_IdAndLocale(city.getCountry().getId(), locale)
+                .map(countryTranslation -> TranslationFallbacks.of(
+                        locale,
+                        countryTranslation.getName(),
+                        countryTranslation.getSlug(),
+                        countryTranslation.getDescription(),
+                        city.getCountry().getName(),
+                        city.getCountry().getSlug(),
+                        city.getCountry().getDescription()
+                ))
+                .orElseGet(() -> TranslationFallbacks.of(
+                        locale,
+                        null,
+                        null,
+                        null,
+                        city.getCountry().getName(),
+                        city.getCountry().getSlug(),
+                        city.getCountry().getDescription()
+                ));
+
+        return new CategoryResponse.CityItem(
+                city.getId(),
+                cityView.name(),
+                cityView.slug(),
+                city.getFoto(),
+                city.getRating(),
+                city.getCountry() != null ? city.getCountry().getId() : null,
+                countryView != null ? countryView.name() : null,
+                countryView != null ? countryView.slug() : null
+        );
     }
 }
 

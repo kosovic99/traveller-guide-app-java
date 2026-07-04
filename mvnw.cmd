@@ -147,7 +147,8 @@ if ($distributionSha256Sum) {
 }
 
 # unzip and move
-Expand-Archive "$TMP_DOWNLOAD_DIR/$distributionUrlName" -DestinationPath "$TMP_DOWNLOAD_DIR" | Out-Null
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::ExtractToDirectory("$TMP_DOWNLOAD_DIR/$distributionUrlName", "$TMP_DOWNLOAD_DIR")
 
 # Find the actual extracted directory name (handles snapshots where filename != directory name)
 $actualDistributionDir = ""

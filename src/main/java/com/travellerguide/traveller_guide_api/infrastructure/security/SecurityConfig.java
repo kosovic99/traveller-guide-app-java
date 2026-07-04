@@ -35,6 +35,11 @@ public class SecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint));
 
+        if (apiKeyProperties.testDevMode()) {
+            http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            return http.build();
+        }
+
         if (apiKeyProperties.enforceHttps()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
             http.headers(headers -> headers
@@ -46,11 +51,13 @@ public class SecurityConfig {
             http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
             http.authorizeHttpRequests(auth -> auth
                     .requestMatchers("/h2-console/**").permitAll()
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
                     .anyRequest().authenticated()
             );
         } else {
             http.authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
                     .anyRequest().authenticated()
             );

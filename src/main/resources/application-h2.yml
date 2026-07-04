@@ -29,3 +29,4 @@ traveller-guide:
     api-key:
       value: local-dev-api-key
       enforce-https: false
+      test-dev-mode: false
